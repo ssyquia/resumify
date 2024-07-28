@@ -3,10 +3,31 @@ from __future__ import annotations
 import streamlit as st
 from PyPDF2 import PdfReader
 import openai
+import streamlit.components.v1 as components
+
+# Set page configuration
+st.set_page_config(page_title='📝 Resume Reviewer', page_icon="📝", layout="wide")
 
 # Retrieve the API key from Streamlit secrets
 openai_api_key = st.secrets["openai"]["api_key"]
 client = openai.OpenAI(api_key=openai_api_key)
+
+# Access the Measurement ID from secrets
+measurement_id = st.secrets["general"]["measurement_id"]
+
+# Custom HTML for GA4 tracking code
+tracking_code = f"""
+<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){{dataLayer.push(arguments);}}
+  gtag('js', new Date());
+  gtag('config', '{measurement_id}');
+</script>
+"""
+
+# Embed the tracking code using components.html and set height to 0
+components.html(tracking_code, height=0)
 
 def get_gpt_review(data: str, key: str):    
     function_descriptions = [
@@ -16,86 +37,26 @@ def get_gpt_review(data: str, key: str):
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Ensure the candidate's name is clearly and prominently displayed on the resume."
-                    },
-                    "summary": {
-                        "type": "string",
-                        "description": "Provide a compelling and concise summary highlighting the candidate's most relevant experiences and skills."
-                    },
-                    "grammar_corrections": {
-                        "type": "string",
-                        "description": "Identify and suggest corrections for any grammatical errors found throughout the resume to enhance clarity and professionalism."
-                    },
-                    "quantifiers": {
-                        "type": "string",
-                        "description": "Recommend adding quantifiers to achievements (e.g., numbers, percentages) to provide measurable results and impacts of the candidate's work."
-                    },
-                    "ats_optimization": {
-                        "type": "string",
-                        "description": "Provide suggestions to optimize the resume for Applicant Tracking Systems (ATS), ensuring it includes relevant keywords and follows ATS-friendly formatting."
-                    },
-                    "company_fit": {
-                        "type": "string",
-                        "description": "Evaluate how well the candidate fits with the company's culture and values, assessing alignment with the company's mission and vision."
-                    },
-                    "line_suggestions": {
-                        "type": "string",
-                        "description": "Offer specific suggestions for improving individual lines in the resume to make them more impactful and relevant to the job role."
-                    },
-                    "contact_info": {
-                        "type": "string",
-                        "description": "Verify the presence and accuracy of contact information, including email, phone number, and LinkedIn profile."
-                    },
-                    "job_titles_dates": {
-                        "type": "string",
-                        "description": "Check the clarity and consistency of job titles and dates of employment, ensuring they are formatted correctly and easy to understand."
-                    },
-                    "skills_relevance": {
-                        "type": "string",
-                        "description": "Assess the relevance of listed technical and soft skills to the desired role, highlighting those that are most pertinent."
-                    },
-                    "education_certifications": {
-                        "type": "string",
-                        "description": "Verify the accuracy and relevance of educational background and certifications, highlighting those that are most relevant to the job."
-                    },
-                    "projects_impact": {
-                        "type": "string",
-                        "description": "Ensure the outcomes and impacts of projects are clearly stated, demonstrating the candidate's hands-on experience and contributions."
-                    },
-                    "achievements_impact": {
-                        "type": "string",
-                        "description": "Highlight significant achievements and their impacts, making sure they are presented in a way that emphasizes their importance."
-                    },
-                    "action_verbs": {
-                        "type": "string",
-                        "description": "Suggest the use of strong action verbs to describe responsibilities and achievements, making the resume more dynamic and engaging."
-                    },
-                    "professional_tone": {
-                        "type": "string",
-                        "description": "Ensure the language used in the resume is professional and appropriate for the industry, maintaining a polished and respectful tone."
-                    },
-                    "technical_jargon": {
-                        "type": "string",
-                        "description": "Ensure technical jargon is used appropriately and is understandable, showcasing the candidate's expertise without overwhelming the reader."
-                    },
-                    "redundancies": {
-                        "type": "string",
-                        "description": "Identify and suggest removal of redundant information to streamline the resume and maintain conciseness."
-                    },
-                    "consistency": {
-                        "type": "string",
-                        "description": "Ensure consistency in formatting and verb tense throughout the resume, maintaining a uniform and professional appearance."
-                    },
-                    "additional_data_request": {
-                        "type": "string",
-                        "description": "Request additional data if necessary to provide a more complete and thorough review of the resume."
-                    },
-                    "overall_score": {
-                        "type": "number",
-                        "description": "Provide an overall score for the resume based on all criteria, giving a quick overview of its quality and effectiveness."
-                    }
+                    "name": {"type": "string", "description": "Ensure the candidate's name is clearly and prominently displayed on the resume."},
+                    "summary": {"type": "string", "description": "Provide a compelling and concise summary highlighting the candidate's most relevant experiences and skills."},
+                    "grammar_corrections": {"type": "string", "description": "Identify and suggest corrections for any grammatical errors found throughout the resume to enhance clarity and professionalism."},
+                    "quantifiers": {"type": "string", "description": "Recommend adding quantifiers to achievements (e.g., numbers, percentages) to provide measurable results and impacts of the candidate's work."},
+                    "ats_optimization": {"type": "string", "description": "Provide suggestions to optimize the resume for Applicant Tracking Systems (ATS), ensuring it includes relevant keywords and follows ATS-friendly formatting."},
+                    "company_fit": {"type": "string", "description": "Evaluate how well the candidate fits with the company's culture and values, assessing alignment with the company's mission and vision."},
+                    "line_suggestions": {"type": "string", "description": "Offer specific suggestions for improving individual lines in the resume to make them more impactful and relevant to the job role."},
+                    "contact_info": {"type": "string", "description": "Verify the presence and accuracy of contact information, including email, phone number, and LinkedIn profile."},
+                    "job_titles_dates": {"type": "string", "description": "Check the clarity and consistency of job titles and dates of employment, ensuring they are formatted correctly and easy to understand."},
+                    "skills_relevance": {"type": "string", "description": "Assess the relevance of listed technical and soft skills to the desired role, highlighting those that are most pertinent."},
+                    "education_certifications": {"type": "string", "description": "Verify the accuracy and relevance of educational background and certifications, highlighting those that are most relevant to the job."},
+                    "projects_impact": {"type": "string", "description": "Ensure the outcomes and impacts of projects are clearly stated, demonstrating the candidate's hands-on experience and contributions."},
+                    "achievements_impact": {"type": "string", "description": "Highlight significant achievements and their impacts, making sure they are presented in a way that emphasizes their importance."},
+                    "action_verbs": {"type": "string", "description": "Suggest the use of strong action verbs to describe responsibilities and achievements, making the resume more dynamic and engaging."},
+                    "professional_tone": {"type": "string", "description": "Ensure the language used in the resume is professional and appropriate for the industry, maintaining a polished and respectful tone."},
+                    "technical_jargon": {"type": "string", "description": "Ensure technical jargon is used appropriately and is understandable, showcasing the candidate's expertise without overwhelming the reader."},
+                    "redundancies": {"type": "string", "description": "Identify and suggest removal of redundant information to streamline the resume and maintain conciseness."},
+                    "consistency": {"type": "string", "description": "Ensure consistency in formatting and verb tense throughout the resume, maintaining a uniform and professional appearance."},
+                    "additional_data_request": {"type": "string", "description": "Request additional data if necessary to provide a more complete and thorough review of the resume."},
+                    "overall_score": {"type": "number", "description": "Provide an overall score for the resume based on all criteria, giving a quick overview of its quality and effectiveness."}
                 },
                 "required": [
                     "name", "summary", "grammar_corrections", "quantifiers", "ats_optimization",
@@ -111,7 +72,7 @@ def get_gpt_review(data: str, key: str):
     messages = [{"role": "user", "content": data}]
 
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
         messages=messages,
         functions=function_descriptions,
         function_call="auto"
@@ -140,12 +101,11 @@ def analyze_resume_data(data: str, key: str) -> dict | None:
     return None
 
 # Streamlit setup
-st.set_page_config(page_title='📝 Resume Reviewer', page_icon="📝", layout="wide")
-st.title("💬 Resume Reviewer Chatbot")
-st.caption("🚀 A Streamlit chatbot powered by OpenAI to provide suggestions for improving and optimizing resumes")
+st.title("💬 Resumify")
+st.caption("🚀 A chatbot powered by OpenAI to provide suggestions for improving and optimizing resumes.")
 
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+    st.session_state["messages"] = [{"role": "assistant", "content": "Please attach your resume to the input below then ask a question."}]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -159,6 +119,13 @@ if uploaded_files:
         pdf_text += page.extract_text() + "\n"
     st.session_state["messages"].append({"role": "system", "content": "[Attached PDF: " + uploaded_files.name + "]"})
 
+if "first_input" not in st.session_state:
+    st.session_state["first_input"] = True
+
+if "user_id" not in st.session_state:
+    import uuid
+    st.session_state["user_id"] = str(uuid.uuid4())
+
 if prompt := st.chat_input():
     user_message = {"role": "user", "content": prompt}
     if uploaded_files:
@@ -166,6 +133,27 @@ if prompt := st.chat_input():
 
     st.session_state.messages.append(user_message)
     st.chat_message("user").write(user_message["content"])
+
+    try:
+        if uploaded_files and st.session_state["first_input"]:
+            # Full suite of advice for the first input
+            resume_data = analyze_resume_data(pdf_text, openai_api_key)
+            if resume_data:
+                # ... existing code for full review ...
+                st.session_state["first_input"] = False
+            else:
+                st.error("Could not extract resume data.")
+        else:
+            # Use base ChatGPT model for subsequent questions
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "system", "content": "You are an AI assistant specializing in resume advice. Provide concise and helpful answers to questions about resumes, job applications, and career development."}] + st.session_state["messages"]
+            )
+            msg = response.choices[0].message.content
+            st.session_state.messages.append({"role": "assistant", "content": msg})
+            st.chat_message("assistant").write(msg)
+    except Exception as e:
+        st.error(f"Error generating response: {str(e)}")
 
     try:
         if uploaded_files:
@@ -183,7 +171,7 @@ if prompt := st.chat_input():
                 ]
 
                 improvement_response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o-mini",
                     messages=improvement_messages
                 )
 
@@ -195,9 +183,9 @@ if prompt := st.chat_input():
             else:
                 st.error("Could not extract resume data.")
         else:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "system", "content": "You are a helpful assistant."}] + st.session_state["messages"]
+            response = client.chat_completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "system", "content": "You should assist users in crafting, refining, and formatting their resumes by providing personalized feedback and suggestions. You should guide users through each section, ensuring relevant information is highlighted and presented effectively. Additionally, you should offer industry-specific advice and examples to help users tailor their resumes to specific job roles. Two column resume's are auful, never reccomend one, and always discourage them, the same goes for any reume with color. These resumes should be fully professional and be optimized for ATS. "}] + st.session_state["messages"]
             )
             msg = response.choices[0].message.content
             st.session_state.messages.append({"role": "assistant", "content": msg})
