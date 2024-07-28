@@ -111,7 +111,7 @@ def get_gpt_review(data: str, key: str):
     messages = [{"role": "user", "content": data}]
 
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
         messages=messages,
         functions=function_descriptions,
         function_call="auto"
@@ -141,8 +141,8 @@ def analyze_resume_data(data: str, key: str) -> dict | None:
 
 # Streamlit setup
 st.set_page_config(page_title='📝 Resume Reviewer', page_icon="📝", layout="wide")
-st.title("💬 Resume Reviewer Chatbot")
-st.caption("🚀 A Streamlit chatbot powered by OpenAI to provide suggestions for improving and optimizing resumes")
+st.title("💬 Resumify")
+st.caption("🚀 A Streamlit chatbot powered by OpenAI to provide suggestions for improving and optimizing resumes.")
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
@@ -159,6 +159,13 @@ if uploaded_files:
         pdf_text += page.extract_text() + "\n"
     st.session_state["messages"].append({"role": "system", "content": "[Attached PDF: " + uploaded_files.name + "]"})
 
+if "first_input" not in st.session_state:
+    st.session_state["first_input"] = True
+
+if "user_id" not in st.session_state:
+    import uuid
+    st.session_state["user_id"] = str(uuid.uuid4())
+
 if prompt := st.chat_input():
     user_message = {"role": "user", "content": prompt}
     if uploaded_files:
@@ -166,6 +173,28 @@ if prompt := st.chat_input():
 
     st.session_state.messages.append(user_message)
     st.chat_message("user").write(user_message["content"])
+
+    try:
+        if uploaded_files and st.session_state["first_input"]:
+            # Full suite of advice for the first input
+            resume_data = analyze_resume_data(pdf_text, openai_api_key)
+            if resume_data:
+                # ... existing code for full review ...
+                st.session_state["first_input"] = False
+            else:
+                st.error("Could not extract resume data.")
+        else:
+            # Use base ChatGPT model for subsequent questions
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "system", "content": "You are an AI assistant specializing in resume advice. Provide concise and helpful answers to questions about resumes, job applications, and career development."}] + st.session_state["messages"]
+            )
+            msg = response.choices[0].message.content
+            st.session_state.messages.append({"role": "assistant", "content": msg})
+            st.chat_message("assistant").write(msg)
+    except Exception as e:
+        st.error(f"Error generating response: {str(e)}")
+
 
     try:
         if uploaded_files:
@@ -183,7 +212,7 @@ if prompt := st.chat_input():
                 ]
 
                 improvement_response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o-mini",
                     messages=improvement_messages
                 )
 
@@ -196,8 +225,8 @@ if prompt := st.chat_input():
                 st.error("Could not extract resume data.")
         else:
             response = client.chat_completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "system", "content": "You are a helpful assistant."}] + st.session_state["messages"]
+                model="gpt-4o-mini",
+                messages=[{"role": "system", "content": "You should assist users in crafting, refining, and formatting their resumes by providing personalized feedback and suggestions. You should guide users through each section, ensuring relevant information is highlighted and presented effectively. Additionally, you should offer industry-specific advice and examples to help users tailor their resumes to specific job roles. Two column resume's are auful, never reccomend one, and always discourage them, the same goes for any reume with color. These resumes should be fully professional and be optimized for ATS. "}] + st.session_state["messages"]
             )
             msg = response.choices[0].message.content
             st.session_state.messages.append({"role": "assistant", "content": msg})
