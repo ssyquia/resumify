@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import streamlit as st
 from PyPDF2 import PdfReader
 import openai
@@ -16,7 +14,6 @@ client = openai.OpenAI(api_key=openai_api_key)
 hotjar_id = st.secrets["general"]["hotjar_id"]
 
 # Custom HTML for Hotjar tracking code
-# Custom HTML for Hotjar tracking code
 tracking_code = f"""
 <script>
     (function(h,o,t,j,a,r){{
@@ -29,8 +26,6 @@ tracking_code = f"""
     }})(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
 </script>
 """
-
-
 
 # Embed the tracking code using components.html and set height to 0
 components.html(tracking_code, height=0)
@@ -105,7 +100,6 @@ def analyze_resume_data(data: str, key: str) -> dict | None:
             print("Error: Cannot convert to a JSON object.")
             print(e)
     return None
-
 # Streamlit setup
 st.title("💬 Resumify")
 st.caption("🚀 A chatbot powered by OpenAI to provide suggestions for improving and optimizing resumes.")
