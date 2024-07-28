@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import streamlit as st
 from PyPDF2 import PdfReader
 import openai
@@ -12,17 +10,20 @@ st.set_page_config(page_title='📝 Resume Reviewer', page_icon="📝", layout="
 openai_api_key = st.secrets["openai"]["api_key"]
 client = openai.OpenAI(api_key=openai_api_key)
 
-# Access the Measurement ID from secrets
-measurement_id = st.secrets["general"]["measurement_id"]
+# Access the Hotjar ID from secrets
+hotjar_id = st.secrets["general"]["hotjar_id"]
 
-# Custom HTML for GA4 tracking code
+# Custom HTML for Hotjar tracking code
 tracking_code = f"""
-<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){{dataLayer.push(arguments);}}
-  gtag('js', new Date());
-  gtag('config', '{measurement_id}');
+    (function(h,o,t,j,a,r){{
+        h.hj=h.hj||function(){{(h.hj.q=h.hj.q||[]).push(arguments)}};
+        h._hjSettings={{hjid:{hotjar_id},hjsv:6}};
+        a=o.getElementsByTagName('head')[0];
+        r=o.createElement('script');r.async=1;
+        r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+        a.appendChild(r);
+    }})(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
 </script>
 """
 
@@ -99,7 +100,6 @@ def analyze_resume_data(data: str, key: str) -> dict | None:
             print("Error: Cannot convert to a JSON object.")
             print(e)
     return None
-
 # Streamlit setup
 st.title("💬 Resumify")
 st.caption("🚀 A chatbot powered by OpenAI to provide suggestions for improving and optimizing resumes.")
